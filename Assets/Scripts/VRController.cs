@@ -94,7 +94,7 @@ public class VRController : MonoBehaviour
             speed = Mathf.Clamp(speed, -maxSpeed, maxSpeed);
 
             // Orientation
-            movement += orientation * (speed * Vector3.forward);
+            movement += orientation * (((speed >= 0) ? maxSpeed : (-maxSpeed)) * Vector3.forward);
         }
         else
         {
