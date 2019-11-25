@@ -5,8 +5,9 @@ using Valve.VR;
 
 public class VRController : MonoBehaviour
 {
+    public float gravity = 50f;
     public float sensitivity = 0.1f;
-    public float maxSpeed = 1.0f;
+    public float maxSpeed = 10f;
 
     public SteamVR_Action_Boolean movePress = null;
     public SteamVR_Action_Vector2 moveValue = null;
@@ -51,38 +52,6 @@ public class VRController : MonoBehaviour
         cameraRig.rotation = oldRot;
     }
 
-    private void CalculateMovement()
-    {
-        // Figure out movement orientation
-        Vector3 orientationEuler = new Vector3(0.0f, transform.eulerAngles.y, 0.0f);
-        Quaternion orientation = Quaternion.Euler(orientationEuler);
-        Vector3 movement = Vector3.zero;
-
-        // If not moving
-        //if (movePress.GetStateUp(SteamVR_Input_Sources.Any))
-        //{
-        //    speed = 0.0f;
-        //}
-
-        // If button pressed
-        if (movePress.state)
-        {
-            // Add, clamp
-            speed += moveValue.axis.y * sensitivity;
-            speed = Mathf.Clamp(speed, -maxSpeed, maxSpeed);
-
-            // Orientation
-            movement += orientation * (speed * Vector3.forward) * Time.deltaTime;
-        }
-        else
-        {
-            speed = 0;
-        }
-
-        // Apply
-        characterController.Move(movement);
-    }
-
     private void HandleHeight()
     {
         // Get the head in local space
@@ -103,4 +72,39 @@ public class VRController : MonoBehaviour
         // Apply
         characterController.center = newCentre;
     }
+
+    private void CalculateMovement()
+    {
+        // Figure out movement orientation
+        Vector3 orientationEuler = new Vector3(0.0f, head.eulerAngles.y, 0.0f);
+        Quaternion orientation = Quaternion.Euler(orientationEuler);
+        Vector3 movement = Vector3.zero;
+
+        // If not moving
+        //if (movePress.GetStateUp(SteamVR_Input_Sources.Any))
+        //{
+        //    speed = 0.0f;
+        //}
+
+        // If button pressed
+        if (moveValue.GetChanged(SteamVR_Input_Sources.Any)) 
+        {
+            // Add, clamp
+            speed += moveValue.axis.y * sensitivity;
+            speed = Mathf.Clamp(speed, -maxSpeed, maxSpeed);
+
+            // Orientation
+            movement += orientation * (speed * Vector3.forward);
+        }
+        else
+        {
+            speed = 0f;
+        }
+
+        // Gravity
+        movement.y -= gravity * Time.deltaTime;
+
+        // Apply
+        characterController.Move(movement * Time.deltaTime);
+    }   
 }
